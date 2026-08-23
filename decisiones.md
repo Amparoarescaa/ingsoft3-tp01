@@ -12,6 +12,10 @@ El conflicto se resolvió manualmente desde el editor de GitHub. Se analizaron l
 
 Luego se marcó el conflicto como resuelto, se realizó el commit correspondiente y finalmente se completó el merge del Pull Request.
 
+## Cómo se podría haber evitado el conflicto
+
+El conflicto no habría aparecido si las dos ramas hubieran modificado líneas diferentes del archivo. También podría haberse evitado actualizando la segunda rama con los cambios de `main` antes de realizar su modificación, para trabajar sobre la versión más reciente del archivo.
+
 ## Problemas encontrados y soluciones
 
 Durante el trabajo se comprobó que no era posible realizar un `push` directamente sobre la rama `main` debido a la regla de protección configurada. Esto confirmó que los cambios debían realizarse mediante ramas y Pull Requests.
