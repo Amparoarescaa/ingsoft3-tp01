@@ -24,6 +24,6 @@ También se produjo intencionalmente un conflicto de merge al modificar la misma
 
 ## Uso de Inteligencia Artificial
 
-Se utilizó ChatGPT como herramienta de apoyo durante la realización del trabajo práctico. Se consultó principalmente para comprender el funcionamiento de la protección de ramas, el flujo de trabajo con Pull Requests y el procedimiento para generar y resolver un conflicto de merge.
+Se utilizó ChatGPT como herramienta de apoyo durante la realización del trabajo práctico. Se utilizó principalmente para comprender los comandos de Git, configurar la protección de la rama `main`, realizar el flujo de trabajo con ramas y Pull Requests, generar y resolver el conflicto de merge, y organizar la documentación solicitada.
 
-Las acciones realizadas en GitHub y las decisiones tomadas durante la resolución del conflicto fueron verificadas durante el desarrollo del trabajo.
+La información y los procedimientos sugeridos por la IA fueron verificados mediante su ejecución práctica. Se comprobó que la protección de `main` rechazara efectivamente un push directo, que los cambios pudieran incorporarse mediante Pull Requests, que GitHub detectara el conflicto generado entre las dos ramas y que, una vez resuelto manualmente, permitiera completar el merge. También se verificó en GitHub que el tag y la release `v1.0.0` quedaran publicados correctamente.
