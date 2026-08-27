@@ -16,7 +16,7 @@ export default function Aplicacion() {
                 <Route path="/" element={<Inicio />} />
                 <Route path="/productos" element={<Productos />} />
                 <Route path="/ingresar" element={<Ingresar />} />
-                {/* Privadas (luego las protegemos) */}
+                {/* Privadas */}
                 <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
                 <Route path="/pago" element={<RutaPrivada><Pago /></RutaPrivada>} />
                 <Route path="/perfil" element={<RutaPrivada><Perfil /></RutaPrivada>} />
