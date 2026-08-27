@@ -19,3 +19,10 @@ export const ProductosServicio = {
         return data
     },
 }
+
+export const CarritoServicio = {
+    async crear(pedido) {
+        const { data } = await api.post('/pedidos', pedido)
+        return data
+    },
+}

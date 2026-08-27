@@ -10,18 +10,36 @@ export default function Pago() {
     })
 
     async function onSubmit(values) {
-        const items = JSON.parse(localStorage.getItem('tw_carrito') || '[]')
-        if (items.length === 0) return setEstado({ tipo: 'error', msg: 'No hay items en el carrito.' })
+    const items = JSON.parse(localStorage.getItem('tw_carrito') || '[]')
 
-        try {
-            const creado = await CarritoServicio.crear(items) 
-            await CarritoServicio.actualizar(creado.id || 7, items) 
-            setEstado({ tipo: 'success', msg: `Pedido confirmado para ${values.direccion}, ${values.ciudad}.` })
-            localStorage.removeItem('tw_carrito')
-        } catch (e) {
-            setEstado({ tipo: 'error', msg: 'Error procesando el pedido. Intenta de nuevo.' })
-        }
+    if (items.length === 0) {
+        return setEstado({
+            tipo: 'error',
+            msg: 'No hay items en el carrito.'
+        })
     }
+
+    try {
+        await CarritoServicio.crear({
+            direccion: values.direccion,
+            ciudad: values.ciudad,
+            codigoPostal: values.codigoPostal,
+            items: items
+        })
+
+        setEstado({
+            tipo: 'success',
+            msg: `Pedido confirmado para ${values.direccion}, ${values.ciudad}.`
+        })
+
+        localStorage.removeItem('tw_carrito')
+    } catch (e) {
+        setEstado({
+            tipo: 'error',
+            msg: 'Error procesando el pedido. Intenta de nuevo.'
+        })
+    }
+}
 
     return (
         <Box maxWidth={520} mx="auto" id="seccion-pago">

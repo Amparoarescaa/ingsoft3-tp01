@@ -23,23 +23,13 @@ export default function Productos() {
         setMsg(`${p.title} agregado al carrito`)
     }
 
-    const nombres = [
-        '~Combo paseo floral',
-        '~Traje osito peludo',
-        '~Cucha estilo Burberry',
-        '~Juguete huesito',
-        '~Traje con nombre personalizado',
-        '~Botella de agua portable'
-    ]
-    const precios = [12500, 15000, 37000, 10250, 13000, 7300]
-
-    const productosAMostrar = productos.slice(0, 6).map((p, i) => ({
-        ...p,
-        image: `/mascotas/${i + 1}.jpg`,
-        title: nombres[i],
-        description: 'Producto pensado para el confort y diversión de tu mascota 🐾',
-        price: precios[i]
-    }))
+  const productosAMostrar = productos.map(p => ({
+    ...p,
+    image: p.imagen,
+    title: p.nombre,
+    description: p.descripcion,
+    price: Number(p.precio)
+}))
 
     return (
         <>
