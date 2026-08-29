@@ -1,6 +1,8 @@
 # Decisiones del trabajo práctico
 
-## Conflicto de merge
+## TP1 — Git colaborativo
+
+### Conflicto de merge
 
 El conflicto se generó al crear dos ramas a partir de `main`: `feature/titulo-a` y `feature/titulo-b`. En ambas ramas se modificó la misma línea del archivo `README.md`, pero con contenidos diferentes.
 
