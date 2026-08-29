@@ -128,3 +128,53 @@ También se utilizó como apoyo para analizar errores encontrados durante las pr
 Las configuraciones y soluciones propuestas con asistencia de IA fueron verificadas mediante su ejecución práctica. Se construyeron las imágenes, se levantaron los servicios con Docker Compose, se comprobó la comunicación entre frontend, backend y PostgreSQL, se verificó el healthcheck de la base de datos y se realizaron pruebas de persistencia de los datos.
 
 También se verificó la diferencia de tamaño entre la etapa de construcción y la imagen final del frontend, se publicaron las imágenes del frontend y backend en GitHub Container Registry y se levantó PetStyle mediante `docker-compose.registry.yml` utilizando las imágenes publicadas. Finalmente, se comprobó el funcionamiento completo de la aplicación realizando una compra.
+
+---
+
+## TP3 — Planificación DevOps
+
+### Duración del Sprint
+
+Se configuró un Sprint de una semana mediante un campo de tipo `Iteration` en GitHub Projects.
+
+Se eligió esta duración porque el alcance definido para el Sprint es reducido y está centrado en comenzar la implementación de integración continua. Una semana permite trabajar sobre las tareas planificadas y revisar los avances en un período corto, manteniendo ciclos de trabajo frecuentes.
+
+### Límite de trabajo en progreso (WIP)
+
+Se configuró un límite WIP de 2 elementos para la columna `In Progress`.
+
+Se eligió este valor utilizando como referencia la regla de cantidad de personas del equipo + 1. Al tratarse de un trabajo realizado por una sola persona, el límite establecido es 2.
+
+El objetivo es evitar comenzar demasiadas tareas al mismo tiempo y priorizar la finalización del trabajo que ya se encuentra en progreso antes de iniciar nuevas tareas.
+
+### Análisis de una historia de usuario
+
+Se analizó la siguiente historia:
+
+`Como desarrollador quiero crear la tabla usuarios para guardar los datos.`
+
+Se considera una mala historia de usuario porque está formulada como una tarea técnica y describe directamente una implementación de base de datos. No expresa un valor o una funcionalidad observable para el usuario, sino una decisión interna sobre cómo desarrollar el sistema.
+
+Una posible reformulación sería:
+
+`Como usuario quiero registrarme en la aplicación para poder tener una cuenta y acceder a sus funcionalidades.`
+
+De esta manera, la historia describe una necesidad y un valor observable para el usuario. La creación de la tabla de usuarios podría luego definirse como una tarea técnica necesaria para implementar esa historia.
+
+### Problemas encontrados y soluciones
+
+Durante la configuración del Project se observó inicialmente que la épica y el bug aparecían directamente en la tabla, mientras que la historia y las tareas no se visualizaban como filas independientes. Al desplegar la jerarquía de la épica se comprobó que la historia y sus tareas estaban correctamente incorporadas como sub-issues.
+
+También fue necesario verificar el funcionamiento de la automatización del Project. Se configuró la tarea de implementación del workflow como `In Progress` y, luego de realizar el merge del Pull Request asociado utilizando `Closes #12`, GitHub cerró automáticamente el issue y el Project modificó su estado a `Done`.
+
+De esta manera se comprobó la trazabilidad entre la planificación y la implementación: desde la tarea se puede acceder al Pull Request y al cambio realizado en el código, y desde la tarea también se puede navegar hacia la historia y la épica correspondientes.
+
+### Uso de Inteligencia Artificial
+
+Se utilizó ChatGPT como herramienta de apoyo durante el desarrollo del TP3. Se utilizó principalmente para interpretar los requisitos del trabajo práctico, organizar la jerarquía entre épica, historia de usuario y tareas, configurar el Sprint y el límite WIP, comprender la automatización del Project y realizar el flujo de trazabilidad entre un issue y un Pull Request.
+
+También se utilizó como apoyo para crear el esqueleto inicial del workflow de GitHub Actions y organizar la documentación solicitada.
+
+Las indicaciones proporcionadas con asistencia de IA fueron verificadas directamente en GitHub. Se comprobó que la jerarquía entre issues fuera navegable, que la historia y las tareas estuvieran asignadas al Sprint, que el límite WIP estuviera configurado en la columna `In Progress` y que la automatización `Item closed` estableciera el estado `Done`.
+
+Finalmente, se verificó la trazabilidad realizando el Pull Request #15 con la referencia `Closes #12`. El workflow de CI se ejecutó correctamente sobre el Pull Request y, después del merge, GitHub cerró automáticamente la tarea #12 y la movió de `In Progress` a `Done`.
