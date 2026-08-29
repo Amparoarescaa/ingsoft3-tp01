@@ -18,8 +18,7 @@ services:
       retries: 10
 
   backend:
-    build:
-      context: ./backend
+    image: ghcr.io/amparoarescaa/petstyle-backend:v0.1.0
     container_name: petstyle-backend
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -34,8 +33,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ./frontend
+    image: ghcr.io/amparoarescaa/petstyle-frontend:v0.1.0
     container_name: petstyle-frontend
     ports:
       - "8080:80"

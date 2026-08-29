@@ -8,8 +8,6 @@ CREATE TABLE IF NOT EXISTS productos (
     imagen VARCHAR(255)
 );
 
-TRUNCATE TABLE productos RESTART IDENTITY;
-
 INSERT INTO productos (nombre, descripcion, precio, stock, categoria, imagen)
 VALUES
 ('Set Paseo Floral', 'Set de paseo con collar, correa y accesorios con diseño floral', 12900.00, 15, 'Accesorios', '/mascotas/1.jpg'),
