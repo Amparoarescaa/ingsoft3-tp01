@@ -180,3 +180,37 @@ También se utilizó como apoyo para crear el esqueleto inicial del workflow de 
 Las indicaciones proporcionadas con asistencia de IA fueron verificadas directamente en GitHub. Se comprobó que la jerarquía entre issues fuera navegable, que la historia y las tareas estuvieran asignadas al Sprint, que el límite WIP estuviera configurado en la columna `In Progress` y que la automatización `Item closed` estableciera el estado `Done`.
 
 Finalmente, se verificó la trazabilidad realizando el Pull Request #15 con la referencia `Closes #12`. El workflow de CI se ejecutó correctamente sobre el Pull Request y, después del merge, GitHub cerró automáticamente la tarea #12 y la movió de `In Progress` a `Done`.
+
+## TP4 — CI: Pipelines as Code
+
+### Estructura del pipeline
+
+El pipeline de CI tiene dos jobs separados: `build-backend` y `build-frontend`, porque la aplicación PetStyle tiene un Dockerfile para cada uno de esos componentes. Los jobs se ejecutan en paralelo porque ninguno depende del resultado del otro para poder construir su imagen. Esto permite verificar ambos componentes de forma independiente y reduce el tiempo total del pipeline.
+
+El workflow se ejecuta tanto en los Pull Requests hacia `main` como en los pushes a `main`. Los Pull Requests permiten verificar los cambios antes del merge, mientras que la ejecución sobre `main` permite comprobar el estado de la rama principal una vez integrado el cambio.
+
+### Cache de capas
+
+Se configuró cache de Docker Buildx de forma independiente para backend y frontend. En una segunda ejecución, las capas que no cambiaron pueden reutilizarse y aparecen como `CACHED` en los logs.
+
+Por ejemplo, pueden reutilizarse capas correspondientes a dependencias, archivos copiados o pasos de build mientras sus entradas no hayan cambiado. Si cambia una instrucción o alguno de los archivos de los que depende una capa, esa capa y las posteriores que correspondan deben reconstruirse.
+
+Si el cache desaparece, el pipeline sigue funcionando correctamente, pero Docker debe volver a construir las capas desde cero, por lo que la ejecución tarda más. El cache es una optimización y no un requisito para que el build sea correcto.
+
+### Uso de los Dockerfiles
+
+El pipeline construye las imágenes utilizando los mismos Dockerfiles creados en el TP2, en lugar de implementar un proceso de compilación diferente dentro del workflow. De esta forma, la definición utilizada por CI es la misma que se utiliza para construir los contenedores de la aplicación, evitando tener dos procesos de build distintos que podrían producir resultados diferentes.
+
+### Problemas encontrados y soluciones
+
+Al configurar el workflow aparecieron inicialmente problemas con las rutas de los contextos de build y con la indentación del archivo YAML. Se corrigieron las rutas para que apunten a los Dockerfiles reales de PetStyle y se corrigió la estructura del workflow hasta lograr que ambos jobs finalizaran correctamente.
+
+También se provocó intencionalmente una falla en el Dockerfile del backend para comprobar el funcionamiento del pipeline como gate. El job `build-backend` falló y GitHub bloqueó el merge del Pull Request. Luego se corrigió el Dockerfile, el pipeline volvió a ejecutarse correctamente y el merge quedó habilitado.
+
+Se configuraron `build-backend` y `build-frontend` como required status checks de `main` y se activó el requisito de mantener la rama actualizada antes del merge. Esto se verificó con un Pull Request que quedó marcado como desactualizado después de que `main` recibiera otro cambio; al actualizar la rama, los checks volvieron a ejecutarse y el merge quedó habilitado.
+
+### Uso de IA
+
+Se utilizó ChatGPT como asistencia para interpretar la consigna, configurar el workflow de GitHub Actions, diagnosticar errores del YAML y de las rutas de build, y guiar la configuración y verificación de las protecciones de `main`.
+
+Las sugerencias fueron verificadas ejecutando el pipeline en GitHub Actions y observando los resultados reales: ambos builds en paralelo, reutilización del cache mediante capas `CACHED`, bloqueo del merge ante una falla intencional, ejecución correcta después del fix, required status checks y comportamiento de una rama desactualizada. También se verificó que el badge agregado al README muestre el estado del workflow y enlace a su historial de ejecuciones.
