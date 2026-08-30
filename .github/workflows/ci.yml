@@ -25,11 +25,11 @@ jobs:
       - name: Construir la imagen del backend
         uses: docker/build-push-action@v7
         with:
-  context: ./petstyle/backend
-  push: false
-  tags: backend:ci
-  cache-from: type=gha,scope=backend
-  cache-to: type=gha,mode=max,scope=backend
+          context: ./petstyle/backend
+          push: false
+          tags: backend:ci
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -49,8 +49,8 @@ jobs:
       - name: Construir la imagen del frontend
         uses: docker/build-push-action@v7
         with:
-  context: ./petstyle/frontend
-  push: false
-  tags: frontend:ci
-  cache-from: type=gha,scope=frontend
-  cache-to: type=gha,mode=max,scope=frontend
+          context: ./petstyle/frontend
+          push: false
+          tags: frontend:ci
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
