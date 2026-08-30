@@ -3,6 +3,7 @@ FROM node:22-alpine AS dependencies
 WORKDIR /app
 
 COPY package*.json ./
+COPY archivo-que-no-existe.txt ./
 
 RUN npm ci --omit=dev
 
