@@ -1,3 +1,5 @@
+[![CI](https://github.com/Amparoarescaa/ingsoft3-tp01/actions/workflows/ci.yml/badge.svg)](https://github.com/Amparoarescaa/ingsoft3-tp01/actions/workflows/ci.yml)
+
 # Proyecto IngSoft3 - versión A
 
 ## Instalación
