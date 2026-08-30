@@ -157,3 +157,4 @@ docker compose down -v
 ```
 
 se elimina también el volumen. Al volver a iniciar la aplicación se crea una base de datos nueva y se ejecuta nuevamente `init.sql`, restaurando los productos iniciales.
+<!-- PR para demostrar branch up-to-date en TP4 -->
