@@ -105,3 +105,17 @@ Finalmente, se verificó el funcionamiento de PetStyle desde el navegador en `lo
 La aplicación carga correctamente el catálogo de productos obtenido mediante el backend y PostgreSQL.
 
 ![PetStyle funcionando](img/13-petstyle-funcionando.jpeg)
+
+## 10. Gestión de variables de entorno
+
+Se verificó que el archivo `.env` utilizado para la configuración local se encuentra ignorado por Git y no está versionado en el repositorio.
+
+El archivo `.env.example` sí se encuentra versionado como plantilla de configuración, y `.gitignore` incluye la regla `.env`.
+
+![Gestión de variables de entorno](img/14-variables-entorno.jpeg)
+
+## 11. Volumen persistente de Docker
+
+Se verificó mediante `docker volume ls` la existencia del volumen `petstyle_petstyle_data`, utilizado por PostgreSQL para almacenar los datos de manera persistente.
+
+![Volumen persistente de Docker](img/15-docker-volume-ls.jpeg)
