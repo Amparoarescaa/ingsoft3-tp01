@@ -214,3 +214,67 @@ Se configuraron `build-backend` y `build-frontend` como required status checks d
 Se utilizó ChatGPT como asistencia para interpretar la consigna, configurar el workflow de GitHub Actions, diagnosticar errores del YAML y de las rutas de build, y guiar la configuración y verificación de las protecciones de `main`.
 
 Las sugerencias fueron verificadas ejecutando el pipeline en GitHub Actions y observando los resultados reales: ambos builds en paralelo, reutilización del cache mediante capas `CACHED`, bloqueo del merge ante una falla intencional, ejecución correcta después del fix, required status checks y comportamiento de una rama desactualizada. También se verificó que el badge agregado al README muestre el estado del workflow y enlace a su historial de ejecuciones.
+
+## TP5 — Testing y Calidad
+
+### Lógica testeada
+
+Se incorporaron tests unitarios tanto en el backend como en el frontend de PetStyle, priorizando reglas de negocio que pueden verificarse de manera aislada.
+
+En el backend se extrajo lógica relacionada con los pedidos a `src/pedidos.js`. Se probaron reglas como la validación de cantidades, validación de stock, cálculo de subtotales y totales, y obtención de productos mediante un repositorio. Estas reglas son relevantes porque intervienen directamente en la creación de un pedido y permiten detectar cantidades inválidas, falta de stock y errores en los cálculos antes de persistir información.
+
+En el frontend se extrajo lógica del carrito a `src/logica/carrito.js`. Se probaron el cálculo de subtotales y totales, la detección de un carrito vacío y el cálculo y validación de descuentos. También se separó el envío de pedidos en `src/servicios/pedidos.js` para poder probar esa interacción sin realizar una petición HTTP real.
+
+Los tests utilizan la estructura Arrange, Act y Assert. Además, tanto backend como frontend incluyen tests parametrizados, casos inválidos o de error y tests con mocks.
+
+### Refactor para permitir mocks
+
+En el backend, la obtención de un producto dependía directamente de PostgreSQL a través del pool de conexiones. Para poder probar esa lógica de forma aislada se creó `obtenerProducto`, que recibe el repositorio como dependencia. En producción se utiliza `repositorioProductos`, mientras que en el test se proporciona un repositorio falso mediante `vi.fn()`.
+
+En el frontend se aplicó el mismo criterio al envío de pedidos. La función `enviarPedido` recibe el cliente HTTP como parámetro. La aplicación real le pasa la instancia de Axios, mientras que el test utiliza un cliente simulado con `vi.fn()`. De esta manera el test verifica la interacción sin depender de la red ni del backend real.
+
+### Herramientas utilizadas
+
+Debido a que PetStyle utiliza Node.js tanto para las herramientas del frontend como para el backend, se utilizó Vitest 5.0.3 como framework de testing y `@vitest/coverage-v8` para medir cobertura.
+
+Los tests parametrizados se implementaron mediante `it.each`. Los dobles y mocks se implementaron con `vi.fn()` y `mockResolvedValue`. La cobertura se obtuvo mediante el provider V8 y los thresholds se configuraron en `vitest.config.js`.
+
+### Threshold de cobertura
+
+Se estableció un threshold global de 90% tanto para líneas como para branches en backend y frontend.
+
+Se eligió 90% porque permite exigir una cobertura alta sobre la lógica seleccionada sin exigir artificialmente un 100% en todos los casos. Además, controlar branches junto con lines permite detectar situaciones en las que una línea fue ejecutada pero no se recorrieron todas las decisiones posibles de un `if`.
+
+Antes de la demostración del gate, el backend obtuvo 93,75% de cobertura de líneas y 90% de branches. El frontend alcanzó 100% de líneas y 100% de branches una vez incorporados todos los tests.
+
+El threshold se aplica directamente desde Vitest. Si cualquiera de las métricas configuradas queda por debajo del 90%, el comando termina con código de error y el job correspondiente de GitHub Actions queda en rojo.
+
+### Exclusiones de cobertura
+
+En el backend se mide específicamente `src/pedidos.js`, donde se concentró la lógica de negocio que se decidió probar unitariamente. Se dejaron fuera del cálculo `server.js`, encargado principalmente de Express, rutas y coordinación HTTP, y `db.js`, encargado de la conexión con PostgreSQL.
+
+En el frontend se incluyen `src/logica/**/*.js` y `src/servicios/pedidos.js`. Los componentes React y la configuración de Axios no se incluyeron porque este TP se enfocó en tests unitarios sin DOM y en aislar la lógica de negocio y las dependencias externas.
+
+Las exclusiones no se utilizaron para ocultar reglas incluidas en los módulos seleccionados: la lógica que se extrajo para ser testeada permanece dentro del cálculo de cobertura.
+
+### Coverage alto no garantiza calidad
+
+Un porcentaje alto de coverage solamente indica qué código fue recorrido durante los tests, pero no demuestra por sí mismo que las verificaciones sean correctas.
+
+Por ejemplo, un test podría ejecutar `calcularSubtotal(1000, 2)` y aumentar la cobertura de esa función, pero si no verificara que el resultado sea `2000`, el código estaría cubierto sin comprobar realmente el comportamiento esperado. Por eso los tests implementados incluyen assertions sobre los resultados y casos de error, y no se utilizó el porcentaje de cobertura como única medida de calidad.
+
+### Primer Pull Request bloqueado por coverage
+
+En el Pull Request #23 se agregó intencionalmente la nueva regla `calcularDescuento` sin agregar inicialmente sus tests. Los 9 tests existentes del frontend continuaron pasando, pero la cobertura descendió a 66,66% de líneas y 50% de branches.
+
+Como ambas métricas quedaron por debajo del threshold de 90%, Vitest finalizó con error y el required check `build-frontend` quedó en rojo. GitHub bloqueó el merge aunque todos los tests existentes hubieran pasado.
+
+Luego se agregaron únicamente los tests correspondientes a `calcularDescuento`, incluyendo descuento normal, porcentaje cero y porcentajes inválidos. El frontend pasó a 13 tests y recuperó 100% de lines y branches. El mismo Pull Request volvió a ejecutar el pipeline, los checks `build-backend` y `build-frontend` quedaron verdes y recién entonces se realizó el merge.
+
+### Análisis de un camino sin cubrir
+
+Al revisar el reporte de coverage del backend se detectó que `src/pedidos.js` tenía 93,75% de cobertura de líneas y 90% de branches. El reporte marcó como no cubierta la línea correspondiente al `throw new Error("Producto no encontrado")` dentro de `obtenerProducto`.
+
+El camino no cubierto ocurre cuando `repositorio.buscarPorId(productoId)` no encuentra el producto y devuelve un valor nulo. Un caso concreto que recorrería ese camino sería utilizar un repositorio simulado cuyo método `buscarPorId` devuelva `null`, por ejemplo al consultar un identificador de producto inexistente.
+
+Se decidió no agregar un test adicional para ese camino en esta instancia. El comportamiento fue identificado y analizado a partir del reporte de coverage, y el backend igualmente cumple el threshold definido: 93,75% de líneas y 90% de branches. Esta decisión también permite mostrar que alcanzar el umbral no implica necesariamente tener cubiertos todos los caminos posibles y que el reporte debe analizarse, no solamente observar su porcentaje final.
