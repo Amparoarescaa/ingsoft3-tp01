@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { enviarPedido } from './pedidos'
 
 export const api = axios.create({
     baseURL: '/api',
@@ -22,7 +23,6 @@ export const ProductosServicio = {
 
 export const CarritoServicio = {
     async crear(pedido) {
-        const { data } = await api.post('/pedidos', pedido)
-        return data
+        return enviarPedido(pedido, api)
     },
 }
