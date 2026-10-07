@@ -3,6 +3,7 @@ import {
     calcularSubtotal,
     calcularTotal,
     carritoVacio,
+    calcularDescuento,
 } from './carrito'
 
 describe('Lógica del carrito', () => {
@@ -33,6 +34,33 @@ describe('Lógica del carrito', () => {
             // Act + Assert
             expect(() => calcularSubtotal(1000, 0)).toThrow(
                 'La cantidad debe ser un entero mayor a 0'
+            )
+        })
+        describe('calcularDescuento', () => {
+            it('aplica el porcentaje de descuento al total', () => {
+                // Act
+                const resultado = calcularDescuento(1000, 20)
+
+                // Assert
+                expect(resultado).toBe(800)
+            })
+
+            it('mantiene el total cuando el descuento es cero', () => {
+                // Act
+                const resultado = calcularDescuento(1000, 0)
+
+                // Assert
+                expect(resultado).toBe(1000)
+            })
+
+            it.each([-1, 101])(
+                'rechaza el porcentaje inválido %s',
+                (porcentaje) => {
+                    // Act + Assert
+                    expect(() => calcularDescuento(1000, porcentaje)).toThrow(
+                        'El porcentaje debe estar entre 0 y 100'
+                    )
+                }
             )
         })
     })
