@@ -239,6 +239,8 @@ Debido a que PetStyle utiliza Node.js tanto para las herramientas del frontend c
 
 Los tests parametrizados se implementaron mediante `it.each`. Los dobles y mocks se implementaron con `vi.fn()` y `mockResolvedValue`. La cobertura se obtuvo mediante el provider V8 y los thresholds se configuraron en `vitest.config.js`.
 
+Para definir qué archivos forman parte de la medición de coverage se utilizó coverage.include en la configuración de Vitest.
+
 ### Threshold de cobertura
 
 Se estableció un threshold global de 90% tanto para líneas como para branches en backend y frontend.
@@ -278,3 +280,51 @@ Al revisar el reporte de coverage del backend se detectó que `src/pedidos.js` t
 El camino no cubierto ocurre cuando `repositorio.buscarPorId(productoId)` no encuentra el producto y devuelve un valor nulo. Un caso concreto que recorrería ese camino sería utilizar un repositorio simulado cuyo método `buscarPorId` devuelva `null`, por ejemplo al consultar un identificador de producto inexistente.
 
 Se decidió no agregar un test adicional para ese camino en esta instancia. El comportamiento fue identificado y analizado a partir del reporte de coverage, y el backend igualmente cumple el threshold definido: 93,75% de líneas y 90% de branches. Esta decisión también permite mostrar que alcanzar el umbral no implica necesariamente tener cubiertos todos los caminos posibles y que el reporte debe analizarse, no solamente observar su porcentaje final.
+
+### Evidencias del quality gate
+
+La primera demostración se realizó en el Pull Request #23:
+
+https://github.com/Amparoarescaa/ingsoft3-tp01/pull/23
+
+Primero se agregó la función `calcularDescuento` sin sus tests. Los 9 tests existentes pasaban, pero el frontend tenía 66,66% de cobertura de líneas y 50% de branches. Como el mínimo configurado es 90%, `build-frontend` quedó en rojo y GitHub no permitió realizar el merge.
+
+Ejecución donde falló por coverage:
+
+https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/37678239441/job/112987203139
+
+Luego se agregaron los tests de la nueva función. El frontend pasó a tener 13 tests y 100% de cobertura de líneas y branches. Los dos checks quedaron verdes y el Pull Request pudo ser mergeado.
+
+Ejecución correcta, donde también se puede ver el resumen y descargar los reportes de coverage:
+
+https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/37679586705?pr=23
+
+### Segundo Pull Request bloqueado
+
+Para comprobar que el control de coverage seguía funcionando, se creó el Pull Request #25 agregando una nueva función `calcularCostoEnvio` sin sus tests:
+
+https://github.com/Amparoarescaa/ingsoft3-tp01/pull/25
+
+Los 11 tests del backend pasan, pero la cobertura baja a 71,42% de líneas y 64,28% de branches. Como no llega al 90%, `build-backend` queda en rojo y el merge permanece bloqueado.
+
+Ejecución del backend:
+
+https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/37681654368/job/112998945145?pr=25
+
+Este Pull Request se deja abierto y en rojo para mostrar el funcionamiento del quality gate durante la defensa.
+
+### Problemas encontrados y soluciones
+
+Al comenzar con los tests del backend apareció un error por la forma en que se estaba importando Vitest. Se solucionó configurando `globals: true`.
+
+Cuando se creó la carpeta `src` del backend también fue necesario modificar el Dockerfile para que esa carpeta se copie dentro de la imagen.
+
+Además, se agregó `coverage/` al `.gitignore` porque los reportes de cobertura son archivos generados automáticamente y no es necesario guardarlos en el repositorio.
+
+Los tests y el coverage se agregaron dentro de los jobs `build-backend` y `build-frontend` que ya existían desde el TP4. De esta manera se mantuvieron los mismos checks obligatorios de `main`, pero ahora también verifican los tests y el porcentaje de coverage.
+
+### Uso de Inteligencia Artificial
+
+Se utilizó ChatGPT como apoyo para interpretar la consigna, organizar los tests, configurar el coverage y el threshold, resolver errores durante la implementación y documentar las decisiones tomadas.
+
+Las sugerencias se verificaron ejecutando los tests y el coverage localmente y mediante GitHub Actions. También se comprobó mediante los Pull Requests #23 y #25 que GitHub bloquea el merge cuando la cobertura queda por debajo del mínimo configurado.
