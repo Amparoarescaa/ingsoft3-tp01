@@ -2,8 +2,26 @@ const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
 
+const {
+  validarCantidad,
+  validarStock,
+  calcularSubtotal,
+  obtenerProducto,
+} = require("./src/pedidos");
+
 const app = express();
 const PORT = 3000;
+
+const repositorioProductos = {
+  async buscarPorId(id) {
+    const resultado = await pool.query(
+      "SELECT precio, stock FROM productos WHERE id = $1",
+      [id]
+    );
+
+    return resultado.rows[0] || null;
+  },
+};
 
 app.use(cors());
 app.use(express.json());
@@ -49,33 +67,39 @@ app.post("/api/pedidos", async (req, res) => {
 
     // Primero validamos los productos y calculamos el total.
     for (const item of items) {
-      const resultado = await pool.query(
-        "SELECT precio, stock FROM productos WHERE id = $1",
-        [item.id]
-      );
+      let producto;
 
-      if (resultado.rows.length === 0) {
-        return res.status(404).json({
-          error: "Producto no encontrado",
-        });
+      try {
+        producto = await obtenerProducto(item.id, repositorioProductos);
+      } catch (error) {
+        if (error.message === "Producto no encontrado") {
+          return res.status(404).json({
+            error: "Producto no encontrado",
+          });
+        }
+
+        throw error;
       }
 
-      const producto = resultado.rows[0];
       const precio = Number(producto.precio);
 
-      if (item.cantidad <= 0) {
+      const cantidad = validarCantidad(item.cantidad);
+
+      if (!cantidad.valida) {
         return res.status(400).json({
-          error: "La cantidad debe ser mayor a 0",
+          error: cantidad.error,
         });
       }
 
-      if (item.cantidad > producto.stock) {
+      const stock = validarStock(item.cantidad, producto.stock);
+
+      if (!stock.valido) {
         return res.status(400).json({
           error: `Stock insuficiente para el producto ${item.id}`,
         });
       }
 
-      total += precio * item.cantidad;
+      total += calcularSubtotal(precio, item.cantidad);
     }
 
     // Creamos el pedido.

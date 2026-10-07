@@ -18,6 +18,7 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY package*.json ./
 COPY db.js ./
 COPY server.js ./
+COPY src ./src
 
 EXPOSE 3000
 

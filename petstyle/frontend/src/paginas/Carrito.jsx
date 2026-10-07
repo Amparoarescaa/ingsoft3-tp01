@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Box, Typography, Table, TableBody, TableCell, TableHead, TableRow, Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
+import { calcularSubtotal, calcularTotal, carritoVacio } from '../logica/carrito'
 
 export default function Carrito() {
     const [items, setItems] = useState([])
@@ -10,12 +11,12 @@ export default function Carrito() {
         setItems(JSON.parse(localStorage.getItem('tw_carrito') || '[]'))
     }, [])
 
-    const total = items.reduce((acc, it) => acc + it.precio * it.cantidad, 0)
+    const total = calcularTotal(items)
 
     return (
         <Box>
             <Typography variant="h4" gutterBottom id="titulo-carrito">Carrito</Typography>
-            {items.length === 0 ? (
+            {carritoVacio(items) ? (
                 <Typography>Tu carrito está vacío.</Typography>
             ) : (
                 <>
@@ -34,7 +35,7 @@ export default function Carrito() {
                                     <TableCell>{it.titulo}</TableCell>
                                     <TableCell>{it.cantidad}</TableCell>
                                     <TableCell>${it.precio}</TableCell>
-                                    <TableCell>${(it.precio * it.cantidad).toFixed(2)}</TableCell>
+                                    <TableCell>${calcularSubtotal(it.precio, it.cantidad).toFixed(2)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

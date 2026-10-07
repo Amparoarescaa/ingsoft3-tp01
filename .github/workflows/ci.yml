@@ -31,6 +31,37 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
+      - name: Preparar Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: petstyle/backend/package-lock.json
+
+      - name: Instalar dependencias del backend
+        working-directory: ./petstyle/backend
+        run: npm ci
+
+      - name: Ejecutar tests y coverage del backend
+        working-directory: ./petstyle/backend
+        run: npx vitest run --coverage
+
+      - name: Mostrar coverage del backend en el Summary
+        if: always()
+        working-directory: ./petstyle/backend
+        run: |
+          echo "## Coverage Backend" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          node -e "const c=require('./coverage/coverage-summary.json').total; console.log('Lines: ' + c.lines.pct + '%'); console.log('Branches: ' + c.branches.pct + '%'); console.log('Functions: ' + c.functions.pct + '%'); console.log('Statements: ' + c.statements.pct + '%')" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Subir reporte de coverage del backend
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-backend
+          path: petstyle/backend/coverage/
+
   build-frontend:
     runs-on: ubuntu-latest
 
@@ -54,3 +85,34 @@ jobs:
           tags: frontend:ci
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Preparar Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: petstyle/frontend/package-lock.json
+
+      - name: Instalar dependencias del frontend
+        working-directory: ./petstyle/frontend
+        run: npm ci
+
+      - name: Ejecutar tests y coverage del frontend
+        working-directory: ./petstyle/frontend
+        run: npx vitest run --coverage
+
+      - name: Mostrar coverage del frontend en el Summary
+        if: always()
+        working-directory: ./petstyle/frontend
+        run: |
+          echo "## Coverage Frontend" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          node -e "const c=require('./coverage/coverage-summary.json').total; console.log('Lines: ' + c.lines.pct + '%'); console.log('Branches: ' + c.branches.pct + '%'); console.log('Functions: ' + c.functions.pct + '%'); console.log('Statements: ' + c.statements.pct + '%')" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Subir reporte de coverage del frontend
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-frontend
+          path: petstyle/frontend/coverage/
