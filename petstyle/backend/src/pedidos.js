@@ -45,10 +45,23 @@ async function obtenerProducto(productoId, repositorio) {
   return producto;
 }
 
+function calcularCostoEnvio(total) {
+  if (total >= 50000) {
+    return 0;
+  }
+
+  if (total >= 20000) {
+    return 2500;
+  }
+
+  return 5000;
+}
+
 module.exports = {
   validarCantidad,
   validarStock,
   calcularSubtotal,
   calcularTotal,
   obtenerProducto,
+  calcularCostoEnvio,
 };
