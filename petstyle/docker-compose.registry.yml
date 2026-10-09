@@ -35,6 +35,8 @@ services:
   frontend:
     image: ghcr.io/amparoarescaa/petstyle-frontend:v0.1.0
     container_name: petstyle-frontend
+    environment:
+      BACKEND_URL: http://backend:3000
     ports:
       - "8080:80"
     depends_on:

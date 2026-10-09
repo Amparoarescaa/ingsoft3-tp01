@@ -10,7 +10,7 @@ const {
 } = require("./src/pedidos");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const repositorioProductos = {
   async buscarPorId(id) {
@@ -28,6 +28,10 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Backend de PetStyle funcionando");
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
 });
 
 app.get("/db", async (req, res) => {
