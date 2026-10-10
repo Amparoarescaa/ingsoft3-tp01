@@ -15,6 +15,9 @@ export default function Inicio() {
                 <Typography variant="h6" color="text.secondary">
                     Tu tienda de accesorios para mascotas 🐾
                 </Typography>
+                <Typography variant="body1" color="secondary.main" fontWeight={600} sx={{ mt: 1 }}>
+                    ¡Nueva experiencia PetStyle 2026!
+                </Typography>
             </Box>
 
             {/* Hero  */}
