@@ -1,5 +1,44 @@
 # Decisiones del trabajo práctico
 
+## Enlaces de este TP — TP6
+
+### Aplicación desplegada
+
+- Frontend QA: https://petstyle-frontend-qa.onrender.com
+- Backend QA: https://petstyle-backend-qa.onrender.com
+- Frontend Producción: https://petstyle-frontend-prod.onrender.com
+- Backend Producción: https://petstyle-backend-prod.onrender.com
+
+### Versión estable
+
+- Tag v6.0.0: https://github.com/Amparoarescaa/ingsoft3-tp01/releases/tag/v6.0.0
+- Commit estable: 0e267a0e3f9205b8e4345c908d7a40537f6cf03e
+
+### Ejecuciones de GitHub Actions
+
+- Ejecución #30 — Despliegue a QA exitoso y producción rechazada:
+  https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/38010356393
+
+- Ejecución #32 — Despliegue a QA exitoso y producción aprobada:
+  https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/38063635460
+
+### Imágenes Docker publicadas en GHCR
+
+- Backend (público):
+  https://github.com/Amparoarescaa/ingsoft3-tp01/pkgs/container/petstyle-backend
+
+- Frontend (público):
+  https://github.com/Amparoarescaa/ingsoft3-tp01/pkgs/container/petstyle-frontend
+
+Las imágenes se publican automáticamente desde GitHub Actions
+cuando los tests finalizan correctamente y los cambios llegan
+a la rama main.
+
+Cada imagen se identifica mediante un tag basado en el SHA
+del commit, lo que permite relacionarla con una versión
+específica del código.
+
+
 ## TP1 — Git colaborativo
 
 ### Conflicto de merge
@@ -328,3 +367,164 @@ Los tests y el coverage se agregaron dentro de los jobs `build-backend` y `build
 Se utilizó ChatGPT como apoyo para interpretar la consigna, organizar los tests, configurar el coverage y el threshold, resolver errores durante la implementación y documentar las decisiones tomadas.
 
 Las sugerencias se verificaron ejecutando los tests y el coverage localmente y mediante GitHub Actions. También se comprobó mediante los Pull Requests #23 y #25 que GitHub bloquea el merge cuando la cobertura queda por debajo del mínimo configurado.
+
+---
+
+## TP6 — Continuous Delivery y entornos
+
+### Estrategia de despliegue
+
+Se implementó un pipeline de Continuous Delivery utilizando GitHub Actions, GitHub Container Registry (GHCR), Render y Neon PostgreSQL.
+
+El pipeline ejecuta automáticamente las pruebas del backend y frontend. Cuando los cambios llegan a la rama `main` y las verificaciones finalizan correctamente, se publican las imágenes Docker en GHCR, identificadas mediante el SHA del commit.
+
+Los Pull Requests ejecutan las verificaciones de CI, pero no publican imágenes ni despliegan la aplicación.
+
+### Separación de entornos
+
+Se configuraron dos entornos independientes:
+
+- **QA:** permite verificar automáticamente los cambios antes de llegar a producción.
+- **Producción:** requiere una aprobación manual mediante GitHub Environments.
+
+Cada entorno cuenta con servicios separados de backend y frontend en Render y con su propia base de datos PostgreSQL en Neon (`app_qa` y `app_prod`).
+
+Esta separación permite realizar pruebas en QA sin modificar los datos de producción.
+
+### Configuración y despliegue
+
+Las variables de configuración, como `DATABASE_URL` y `BACKEND_URL`, se administran mediante variables de entorno y no se incluyen directamente en las imágenes Docker.
+
+El frontend utiliza una plantilla de Nginx que permite configurar la dirección del backend durante el inicio del contenedor.
+
+Los despliegues se realizan mediante deploy hooks de Render, indicando el SHA del commit que debe desplegarse.
+
+Se desactivó el Auto-Deploy de Render para que GitHub Actions controle cuándo se inicia cada despliegue.
+
+### Verificación de los despliegues
+
+Después de iniciar los despliegues, el pipeline ejecuta smoke tests para comprobar:
+
+- La disponibilidad del backend mediante `/health`.
+- El acceso a los productos mediante `/api/productos`.
+- La disponibilidad del frontend mediante `/`.
+
+Se incorporaron reintentos para contemplar los tiempos de inicio de los servicios gratuitos de Render.
+
+Además, se verificaron manualmente los cambios visibles en QA y producción para confirmar que las nuevas versiones estuvieran efectivamente desplegadas.
+
+### Aprobación y rechazo de producción
+
+Se configuró el entorno `production` en GitHub Environments
+con un revisor obligatorio. De esta manera, el despliegue a
+producción no comienza hasta que una persona lo autoriza.
+
+**Prueba de rechazo:**
+
+En la ejecución #30 de GitHub Actions se completaron
+correctamente las verificaciones y el despliegue a QA,
+pero se rechazó manualmente el despliegue a producción.
+
+El motivo fue evitar promover una versión antes de completar
+su validación funcional en QA.
+
+El rechazo quedó registrado en GitHub Actions. No se ingresó
+una justificación escrita en el cuadro de rechazo; el motivo
+se documenta aquí posteriormente.
+
+**Prueba de aprobación:**
+
+Posteriormente, se incorporó un cambio visible en el frontend:
+"¡Nueva experiencia PetStyle 2026!".
+
+En la ejecución #32 se verificó el cambio en QA y luego
+se aprobó manualmente su despliegue a producción.
+
+Finalmente, se comprobó que el mensaje aparecía también
+en la aplicación de producción.
+
+Esto permitió demostrar que QA se despliega automáticamente,
+mientras que producción requiere autorización explícita.
+
+### Prueba de rollback
+
+Se publicó la versión estable `v6.0.0`, correspondiente al commit
+`0e267a0e3f9205b8e4345c908d7a40537f6cf03e`.
+
+Esta versión mostraba en el frontend el mensaje:
+"¡Nueva experiencia PetStyle 2026!".
+
+Posteriormente, se creó un Pull Request con un segundo cambio
+visible que reemplazaba ese mensaje por:
+"¡Promoción especial PetStyle!".
+
+El cambio pasó las verificaciones de CI, se desplegó
+automáticamente en QA y se aprobó manualmente para producción.
+
+Se comprobó que el nuevo mensaje aparecía en producción.
+
+**Ejecución del rollback:**
+
+Desde Render, en el servicio `petstyle-frontend-prod`,
+se utilizó la opción `Manual Deploy → Specific Commit`
+para restaurar el commit exacto de `v6.0.0`.
+
+- Versión recuperada: `v6.0.0`.
+- Commit: `0e267a0e3f9205b8e4345c908d7a40537f6cf03e`.
+- Inicio registrado: 15:54.
+- Finalización: 15:55:07.
+- Duración del despliegue informada por Render: 37,1 segundos.
+- Resultado: `Deploy succeeded`, estado `Live`.
+
+**Verificación del resultado:**
+
+Se actualizó la aplicación de producción y se comprobó que
+volvió a aparecer el mensaje "¡Nueva experiencia PetStyle 2026!".
+
+También se verificó que había desaparecido el mensaje
+"¡Promoción especial PetStyle!".
+
+De esta manera, se demostró la recuperación de una versión
+anterior mediante el despliegue de un commit específico.
+
+El rollback se realizó sobre el frontend de producción,
+que era el componente modificado. No fue necesario restaurar
+el backend ni la base de datos, ya que no habían cambiado.
+
+### Limitaciones y decisiones técnicas
+
+Se utilizaron servicios gratuitos de Render y Neon para
+implementar los entornos de QA y producción sin costos.
+
+**Limitaciones de Render Free:**
+
+- Los servicios pueden entrar en reposo después de un período
+  de inactividad, provocando demoras en la primera solicitud.
+- Los despliegues pueden tardar varios minutos debido a la
+  construcción de las imágenes y al inicio de los contenedores.
+- Los deploy hooks inician el despliegue, pero no esperan
+  necesariamente a que la nueva versión esté disponible.
+
+Por este último motivo, los smoke tests podrían ejecutarse
+mientras todavía está funcionando la versión anterior.
+
+Para reducir este problema se incorporaron reintentos en los
+smoke tests y se verificaron manualmente los cambios visibles
+en QA y producción.
+
+**Decisiones adoptadas:**
+
+Se eligió Render por su integración con GitHub y su
+compatibilidad con aplicaciones Docker.
+
+Se utilizó Neon para disponer de bases de datos PostgreSQL
+separadas para QA y producción.
+
+Aunque las imágenes Docker se publican en GHCR, Render
+construye sus propias imágenes desde el repositorio GitHub.
+Por lo tanto, en este TP las imágenes de GHCR funcionan como
+artefactos publicados y versionados, pero no son las que
+Render utiliza directamente para ejecutar la aplicación.
+
+Esta limitación se tendrá en cuenta en los siguientes
+trabajos prácticos.
