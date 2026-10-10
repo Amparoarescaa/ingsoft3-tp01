@@ -37,6 +37,8 @@ services:
     build:
       context: ./frontend
     container_name: petstyle-frontend
+    environment:
+      BACKEND_URL: http://backend:3000
     ports:
       - "8080:80"
     depends_on:
