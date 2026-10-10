@@ -428,9 +428,19 @@ pero se rechazó manualmente el despliegue a producción.
 El motivo fue evitar promover una versión antes de completar
 su validación funcional en QA.
 
-El rechazo quedó registrado en GitHub Actions. No se ingresó
-una justificación escrita en el cuadro de rechazo; el motivo
-se documenta aquí posteriormente.
+El rechazo inicial quedó registrado en la ejecución #30,
+aunque no se ingresó una justificación escrita en ese momento.
+
+Posteriormente, se repitió la ejecución #36 y se rechazó
+manualmente el despliegue a producción con una justificación
+escrita en GitHub Actions.
+
+El motivo fue preservar la versión estable v6.0.0, recuperada
+y verificada durante la prueba de rollback, evitando promover
+el commit 9f6c659 a producción.
+
+La justificación quedó registrada en la sección
+"Deployment protection rules" de GitHub Actions.
 
 **Prueba de aprobación:**
 
