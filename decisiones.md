@@ -380,6 +380,19 @@ El pipeline ejecuta automáticamente las pruebas del backend y frontend. Cuando 
 
 Los Pull Requests ejecutan las verificaciones de CI, pero no publican imágenes ni despliegan la aplicación.
 
+**Evidencia del pipeline en un Pull Request:**
+
+En la ejecución #35, correspondiente al Pull Request #30,
+se completaron exitosamente los trabajos `build-backend`
+y `build-frontend`.
+
+Los trabajos `Deploy QA` y `Deploy Producción` fueron omitidos.
+Además, las imágenes Docker no se publicaron en GHCR,
+ya que la publicación está limitada a la rama `main`.
+
+Ejecución #35:
+https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/38081467859
+
 ### Separación de entornos
 
 Se configuraron dos entornos independientes:
