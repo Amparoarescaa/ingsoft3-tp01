@@ -4,6 +4,7 @@ module.exports = defineConfig({
     test: {
         globals: true,
 
+        exclude: ['integration/**', '**/node_modules/**'],
         coverage: {
             provider: 'v8',
 

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "test": "vitest run --globals"
+  "test": "vitest run --globals",
+  "test:integration": "vitest run --config vitest.integration.config.js"
 },
   "keywords": [],
   "author": "",
