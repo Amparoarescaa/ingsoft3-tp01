@@ -66,30 +66,57 @@ app.get("/api/productos", async (req, res) => {
 app.post("/api/pedidos", async (req, res) => {
   const { direccion, ciudad, codigoPostal, items } = req.body;
 
+  let cliente;
+
   try {
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        error: "El pedido debe contener productos",
+      });
+    }
+
+    cliente = await pool.connect();
+    await cliente.query("BEGIN");
+
     let total = 0;
 
-    // Primero validamos los productos y calculamos el total.
+    // Evitar productos repetidos en un mismo pedido.
+    const productosRecibidos = new Set();
+
     for (const item of items) {
-      let producto;
+      if (productosRecibidos.has(String(item.id))) {
+        await cliente.query("ROLLBACK");
 
-      try {
-        producto = await obtenerProducto(item.id, repositorioProductos);
-      } catch (error) {
-        if (error.message === "Producto no encontrado") {
-          return res.status(404).json({
-            error: "Producto no encontrado",
-          });
-        }
-
-        throw error;
+        return res.status(400).json({
+          error: "No se permiten productos repetidos en el pedido",
+        });
       }
 
-      const precio = Number(producto.precio);
+      productosRecibidos.add(String(item.id));
+    }
+
+    // Validar productos, cantidades y stock.
+    for (const item of items) {
+      const resultado = await cliente.query(
+        "SELECT precio, stock FROM productos WHERE id = $1 FOR UPDATE",
+        [item.id]
+      );
+
+      const producto = resultado.rows[0];
+
+      if (!producto) {
+        await cliente.query("ROLLBACK");
+
+        return res.status(404).json({
+          error: "Producto no encontrado",
+        });
+      }
 
       const cantidad = validarCantidad(item.cantidad);
 
       if (!cantidad.valida) {
+        await cliente.query("ROLLBACK");
+
         return res.status(400).json({
           error: cantidad.error,
         });
@@ -98,16 +125,21 @@ app.post("/api/pedidos", async (req, res) => {
       const stock = validarStock(item.cantidad, producto.stock);
 
       if (!stock.valido) {
+        await cliente.query("ROLLBACK");
+
         return res.status(400).json({
           error: `Stock insuficiente para el producto ${item.id}`,
         });
       }
 
-      total += calcularSubtotal(precio, item.cantidad);
+      total += calcularSubtotal(
+        Number(producto.precio),
+        item.cantidad
+      );
     }
 
-    // Creamos el pedido.
-    const pedido = await pool.query(
+    // Crear el pedido.
+    const pedido = await cliente.query(
       `INSERT INTO pedidos (direccion, ciudad, codigo_postal, total)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
@@ -116,33 +148,50 @@ app.post("/api/pedidos", async (req, res) => {
 
     const pedidoId = pedido.rows[0].id;
 
-    // Guardamos los productos del pedido y descontamos el stock.
+    // Guardar los productos del pedido y descontar stock.
     for (const item of items) {
-      const resultado = await pool.query(
+      const resultado = await cliente.query(
         "SELECT precio FROM productos WHERE id = $1",
         [item.id]
       );
 
       const precio = Number(resultado.rows[0].precio);
 
-      await pool.query(
+      await cliente.query(
         `INSERT INTO pedido_items
          (pedido_id, producto_id, cantidad, precio_unitario)
          VALUES ($1, $2, $3, $4)`,
         [pedidoId, item.id, item.cantidad, precio]
       );
 
-      await pool.query(
+      await cliente.query(
         "UPDATE productos SET stock = stock - $1 WHERE id = $2",
         [item.cantidad, item.id]
       );
     }
 
+    // Confirmar la transacción.
+    await cliente.query("COMMIT");
+
     res.status(201).json(pedido.rows[0]);
+
   } catch (error) {
+    if (cliente) {
+      try {
+        await cliente.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Error al revertir la transacción:", rollbackError);
+      }
+    }
+
     res.status(500).json({
       error: "No se pudo crear el pedido",
     });
+
+  } finally {
+    if (cliente) {
+      cliente.release();
+    }
   }
 });
 
