@@ -292,7 +292,7 @@ jobs:
             "https://petstyle-frontend-qa.onrender.com/"
 
   integration-tests:
-    name: Tests de integración QA
+    name: Tests de integración Playwright QA
     needs: deploy-qa
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -307,17 +307,27 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: petstyle/backend/package-lock.json
+          cache-dependency-path: petstyle/frontend/package-lock.json
 
       - name: Instalar dependencias
-        working-directory: ./petstyle/backend
+        working-directory: ./petstyle/frontend
         run: npm ci
 
       - name: Ejecutar tests de integración contra QA
-        working-directory: ./petstyle/backend
+        working-directory: ./petstyle/frontend
         env:
-          QA_DATABASE_URL: ${{ secrets.QA_DATABASE_URL }}
-        run: npm run test:integration
+          QA_TEST_TOKEN: ${{ secrets.QA_TEST_TOKEN }}
+        run: npx playwright test e2e/api.spec.js
+
+      - name: Publicar reporte de integración
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-integration-report
+          path: |
+            petstyle/frontend/playwright-report/
+            petstyle/frontend/playwright-results/
+          if-no-files-found: ignore
 
   e2e-tests:
     name: Tests E2E Playwright QA
@@ -347,7 +357,7 @@ jobs:
 
       - name: Ejecutar los 3 tests E2E
         working-directory: ./petstyle/frontend
-        run: npx playwright test
+        run: npx playwright test e2e/petstyle.spec.js
 
       - name: Publicar reporte HTML de Playwright
         if: always()
