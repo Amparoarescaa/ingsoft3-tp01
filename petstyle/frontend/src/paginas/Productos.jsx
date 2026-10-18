@@ -19,7 +19,7 @@ export default function Productos() {
         const siguiente = existe
             ? carrito.map(x => x.id === p.id ? { ...x, cantidad: x.cantidad + 1 } : x)
             : [...carrito, { id: p.id, titulo: p.title, precio: p.price, cantidad: 1 }]
-        // BUG TEMPORAL TP7: no se guarda el carrito
+        localStorage.setItem('tw_carrito', JSON.stringify(siguiente))
         setMsg(`${p.title} agregado al carrito`)
     }
 
