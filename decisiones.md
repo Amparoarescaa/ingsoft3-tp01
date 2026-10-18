@@ -1,5 +1,84 @@
 # Decisiones del trabajo práctico
 
+## Enlaces del TP7
+
+### Repositorio y release
+
+- Repositorio público:
+  https://github.com/Amparoarescaa/ingsoft3-tp01
+
+- Release v7.0.0:
+  https://github.com/Amparoarescaa/ingsoft3-tp01/releases/tag/v7.0.0
+
+- Commit desplegado en producción:
+  f6b721baca3bfa3de528df9593924fed71ea96bd
+
+### Imágenes Docker publicadas en GHCR
+
+- Backend (público):
+  https://github.com/Amparoarescaa/ingsoft3-tp01/pkgs/container/petstyle-backend
+
+- Frontend (público):
+  https://github.com/Amparoarescaa/ingsoft3-tp01/pkgs/container/petstyle-frontend
+
+- Etiqueta de la imagen backend:
+  sha-f6b721baca3bfa3de528df9593924fed71ea96bd
+
+- Etiqueta de la imagen frontend:
+  sha-f6b721baca3bfa3de528df9593924fed71ea96bd
+
+Ambas imágenes se construyeron una sola vez y se utilizaron
+para desplegar primero en QA y después en producción.
+
+### Error intencional y bloqueo de producción
+
+- Commit que introdujo el error:
+  56ed77a
+
+- Ejecución con integración verde y E2E roja:
+  https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/39088755475
+
+- Artefacto de integración (verde):
+  playwright-integration-report
+
+- Artefacto E2E (rojo):
+  playwright-report-html
+
+Ambos artefactos están disponibles en la sección Artifacts
+de la ejecución fallida indicada anteriormente.
+
+El error se introdujo en el código de la aplicación,
+impidiendo que el carrito guardara correctamente los productos.
+
+Las pruebas de integración finalizaron correctamente,
+pero las pruebas E2E detectaron el problema.
+
+Como consecuencia, el pipeline bloqueó el despliegue
+a producción.
+
+### Corrección y despliegue exitoso
+
+- Commit de corrección:
+  ea82c12
+
+- Ejecución completa en verde, con aprobación manual
+  y despliegue exitoso a producción:
+  https://github.com/Amparoarescaa/ingsoft3-tp01/actions/runs/39089520592
+
+### Aplicación desplegada
+
+- Frontend QA:
+  https://petstyle-frontend-qa.onrender.com
+
+- Backend QA:
+  https://petstyle-backend-qa.onrender.com
+
+- Frontend Producción:
+  https://petstyle-frontend-prod.onrender.com
+
+- Backend Producción:
+  https://petstyle-backend-prod.onrender.com
+
 ## Enlaces de este TP — TP6
 
 ### Aplicación desplegada
@@ -551,3 +630,69 @@ Render utiliza directamente para ejecutar la aplicación.
 
 Esta limitación se tendrá en cuenta en los siguientes
 trabajos prácticos.
+
+## TP7 — Contenedores y pruebas E2E
+
+### Build once, deploy many
+
+En el TP6 habíamos configurado la publicación de imágenes Docker en GHCR, pero los servicios de Render todavía construían sus propias imágenes a partir del repositorio de GitHub. En este trabajo modificamos esa configuración para que Render utilice directamente las imágenes que publica GitHub Actions en GHCR.
+
+Se implementó la estrategia Build once, deploy many, que consiste en construir una imagen Docker una sola vez y reutilizarla en diferentes entornos. En nuestro caso, las imágenes del backend y frontend se construyen y publican en GHCR, luego se despliegan en QA para realizar las pruebas y, si todas finalizan correctamente, esas mismas imágenes se utilizan en producción sin volver a construirlas.
+
+Elegimos esta estrategia porque permite asegurarnos de que la versión que llega a producción sea exactamente la misma que fue probada previamente en QA, evitando diferencias que podrían aparecer si las imágenes se construyeran nuevamente.
+
+### Versionado de imágenes
+
+Para identificar las imágenes Docker se utilizaron etiquetas que incluyen el SHA del commit, es decir, un identificador único que Git asigna a cada versión del código. Esto permite saber a qué commit corresponde cada imagen publicada en GHCR y comprobar que QA y producción utilizan la misma versión.
+
+Se eligió este sistema en lugar de utilizar solamente una etiqueta genérica como `latest`, porque permite identificar con mayor precisión qué versión se está desplegando y facilita el seguimiento de los cambios.
+
+Además, se creó la release `v7.0.0`, asociada al commit `f6b721baca3bfa3de528df9593924fed71ea96bd`, que corresponde a la versión que superó todas las pruebas y fue desplegada correctamente en producción.
+
+### Pruebas de integración
+
+Se incorporaron pruebas de integración utilizando Playwright, que realizan solicitudes HTTP al backend desplegado en QA para comprobar que sus funcionalidades respondan correctamente. A diferencia de los tests unitarios, estas pruebas permiten verificar el comportamiento de la API en un entorno donde la aplicación ya está desplegada.
+
+Las pruebas comprueban que se pueda consultar el listado de productos, crear un pedido de prueba, consultar ese pedido y eliminarlo correctamente. También se verifica que la API rechace solicitudes con datos inválidos y que un pedido eliminado ya no pueda consultarse.
+
+Se decidió ejecutar estas pruebas en QA porque necesitábamos comprobar el funcionamiento del backend desplegado sin afectar el entorno de producción. Para ello se utilizaron pedidos identificados como datos de prueba y se incorporaron endpoints auxiliares que solamente están habilitados en QA y protegidos mediante un token.
+
+### Pruebas End-to-End (E2E)
+
+También se agregaron pruebas End-to-End con Playwright, que permiten simular acciones reales de un usuario dentro de un navegador. Mientras que las pruebas de integración verifican principalmente las respuestas del backend, las pruebas E2E comprueban que determinadas funcionalidades del frontend se comporten correctamente desde el punto de vista del usuario.
+
+En PetStyle se decidió verificar que los productos se muestren correctamente, que se puedan agregar productos al carrito y que la aplicación redirija al inicio de sesión cuando un usuario intenta acceder al carrito sin estar autenticado.
+
+Se eligieron estas funcionalidades porque forman parte del recorrido habitual de un usuario dentro de la aplicación. Además, las pruebas E2E permiten detectar errores que no necesariamente aparecen en las pruebas de integración, como problemas al guardar información del carrito en el navegador.
+
+### Quality gate y despliegue a producción
+
+Se configuró el pipeline para que, después de construir las imágenes Docker y desplegarlas automáticamente en QA, se ejecuten las pruebas de integración y las pruebas E2E. El despliegue a producción depende de que ambas etapas finalicen correctamente, por lo que si alguna falla, el pipeline no permite avanzar hacia producción.
+
+Cuando todas las verificaciones terminan en verde, el despliegue queda esperando una aprobación manual desde GitHub Actions. Se mantuvo esta aprobación porque permite controlar cuándo se publica una nueva versión y evita que los cambios lleguen directamente a producción sin autorización.
+
+Una vez aprobada la ejecución, GitHub Actions utiliza la API de Render para desplegar las mismas imágenes de GHCR que ya habían sido probadas en QA. El pipeline también espera a que los servicios terminen de desplegarse y realiza comprobaciones para verificar que respondan correctamente.
+
+### Demostración del bloqueo de producción
+
+Para demostrar que el bloqueo de producción funcionaba, se introdujo intencionalmente un error en el frontend que impedía guardar correctamente los productos agregados al carrito. Este cambio se realizó en una rama y posteriormente se integró mediante un Pull Request, provocando una nueva ejecución del pipeline.
+
+En esa ejecución, las pruebas de integración finalizaron correctamente porque el backend continuaba funcionando como se esperaba. Sin embargo, las pruebas E2E detectaron que los productos agregados al carrito no se guardaban correctamente, por lo que esa etapa terminó en rojo y el despliegue a producción quedó bloqueado.
+
+Después se creó otra rama para corregir el problema, restaurando el guardado del carrito en `localStorage`. La corrección se integró mediante un nuevo Pull Request y se ejecutó nuevamente el pipeline. Esta vez todas las pruebas finalizaron correctamente, se habilitó la aprobación manual y se completó el despliegue a producción.
+
+De esta manera se comprobó que las pruebas E2E podían detectar un error real del frontend y evitar que una versión defectuosa llegara a producción. Los enlaces a las dos ejecuciones de GitHub Actions y sus reportes de Playwright se encuentran al comienzo de este documento.
+
+### Problemas encontrados y soluciones
+
+**Configuración de las pruebas de integración:** Para poder comprobar la creación, consulta y eliminación de pedidos fue necesario incorporar endpoints auxiliares al backend. Como estas operaciones se utilizarían solamente para las pruebas, se decidió habilitarlas únicamente en QA y protegerlas mediante un token, evitando que pudieran utilizarse de la misma manera en producción. Durante las primeras ejecuciones apareció un error en la validación del token, que se solucionó ajustando su comparación para evitar problemas provocados por espacios en blanco.
+
+**Despliegue de imágenes Docker:** Al comenzar este trabajo, los servicios de Render todavía construían sus propias imágenes desde GitHub, como se había documentado en el TP6. Esto no permitía garantizar que se estuvieran reutilizando las imágenes publicadas en GHCR, por lo que fue necesario modificar la configuración de los servicios y el pipeline. Se solucionó configurando Render para utilizar las imágenes de GHCR y GitHub Actions para desplegarlas indicando la etiqueta SHA correspondiente a cada commit.
+
+**Demoras en Render:** Durante las verificaciones también fue necesario tener en cuenta que los servicios gratuitos de Render pueden tardar en responder después de un período de inactividad. Para evitar que las pruebas comenzaran antes de que los servicios estuvieran disponibles, se incorporaron verificaciones del estado de los despliegues y reintentos en las solicitudes.
+
+### Uso de inteligencia artificial
+
+Se utilizó inteligencia artificial como herramienta de apoyo durante el desarrollo del TP7, principalmente para comprender la estrategia Build once, deploy many, revisar la configuración del pipeline de GitHub Actions y preparar las pruebas de integración y E2E con Playwright.
+
+También se utilizó para analizar los errores que aparecieron durante las ejecuciones, revisar posibles soluciones y organizar la documentación del trabajo. Los cambios realizados se comprobaron mediante las ejecuciones reales de GitHub Actions y las pruebas sobre los entornos de QA y producción.
