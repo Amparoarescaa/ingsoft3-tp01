@@ -40,7 +40,7 @@ function autorizarPruebasQA(req, res, next) {
   if (
     !tokenConfigurado ||
     !tokenRecibido ||
-    tokenRecibido !== tokenConfigurado
+    tokenRecibido.trim() !== tokenConfigurado.trim()
   ) {
     return res.status(403).json({
       error: "Acceso no autorizado",
