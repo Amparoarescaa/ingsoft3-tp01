@@ -20,3 +20,12 @@ Thumbs.db
 playwright-report/
 playwright-results/
 test-results/
+
+# Terraform: archivos locales y datos sensibles
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
