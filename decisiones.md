@@ -696,3 +696,66 @@ De esta manera se comprobó que las pruebas E2E podían detectar un error real d
 Se utilizó inteligencia artificial como herramienta de apoyo durante el desarrollo del TP7, principalmente para comprender la estrategia Build once, deploy many, revisar la configuración del pipeline de GitHub Actions y preparar las pruebas de integración y E2E con Playwright.
 
 También se utilizó para analizar los errores que aparecieron durante las ejecuciones, revisar posibles soluciones y organizar la documentación del trabajo. Los cambios realizados se comprobaron mediante las ejecuciones reales de GitHub Actions y las pruebas sobre los entornos de QA y producción.
+---
+
+## TP8 — Infraestructura como Código (IaC)
+
+### Implementación de Terraform
+
+En este trabajo se incorporó Terraform para administrar la infraestructura de PetStyle mediante archivos de configuración, en lugar de crear y configurar todos los servicios manualmente desde las plataformas.
+
+Se creó el directorio `infra`, donde se definieron los proveedores y los recursos necesarios para desplegar un entorno de preproducción. Se utilizaron los proveedores de Render y Neon, que permiten administrar los servicios de la aplicación y la base de datos PostgreSQL.
+
+Se eligió Terraform porque permite describir la infraestructura mediante código, conocer los cambios antes de aplicarlos y volver a crear los recursos de manera reproducible.
+
+### Entorno de preproducción
+
+Se creó un entorno independiente de QA y producción, compuesto por una base de datos PostgreSQL en Neon, un backend en Render y un frontend en Render.
+
+Para el backend y el frontend se reutilizaron las imágenes Docker publicadas en GitHub Container Registry durante el TP7, identificadas mediante una etiqueta SHA. De esta manera, no fue necesario construir imágenes diferentes para preproducción y se mantuvo la estrategia de reutilizar los mismos artefactos entre entornos.
+
+El backend se configuró con la variable `APP_ENV=preprod` y con la conexión a la base de datos creada por Terraform. El frontend se configuró para comunicarse con el backend de preproducción mediante Nginx.
+
+Los tres recursos se definieron utilizando planes gratuitos, evitando incorporar servicios pagos para realizar el trabajo.
+
+### Configuración de la base de datos
+
+Terraform se utilizó para crear el proyecto de PostgreSQL en Neon. Sin embargo, la creación del proyecto no incorpora automáticamente las tablas y los datos iniciales de PetStyle.
+
+Por ese motivo, después de crear la infraestructura se ejecutó el archivo `petstyle/backend/database/init.sql`, que crea las tablas de productos y pedidos y carga seis productos iniciales.
+
+La dirección de conexión se obtuvo desde una salida sensible de Terraform, sin escribir la contraseña directamente en los archivos de configuración ni publicarla en el repositorio.
+
+### Verificación del funcionamiento
+
+Después del primer despliegue se comprobó que el backend respondiera correctamente en `/health` y que pudiera conectarse a PostgreSQL mediante `/db`.
+
+También se verificó que el endpoint `/api/productos` devolviera los seis productos cargados en la base de datos.
+
+Luego se comprobó que el frontend estuviera disponible y que pudiera consultar los productos a través de su configuración de Nginx. Finalmente, se abrió la aplicación desde el navegador y se confirmó que la tienda mostrara correctamente los productos, sus imágenes y sus precios.
+
+### Prueba de destrucción y reconstrucción
+
+Para demostrar que la infraestructura podía administrarse mediante código, primero se ejecutó `terraform plan -destroy`. El resultado indicó que se eliminarían únicamente los tres recursos de preproducción, sin incluir los servicios de QA ni producción.
+
+Después se ejecutó `terraform destroy`, que eliminó correctamente la base de datos, el backend y el frontend de preproducción.
+
+A continuación, se ejecutó nuevamente `terraform apply` utilizando los mismos archivos de configuración. Terraform creó otra vez los tres recursos, sin necesidad de configurarlos manualmente en Render o Neon.
+
+Como la nueva base de datos estaba vacía, se volvió a ejecutar `init.sql` para crear las tablas y cargar los productos iniciales. Finalmente, se consultó `/api/productos` a través del frontend reconstruido y se obtuvo una respuesta HTTP 200 con los seis productos.
+
+Esta prueba permitió comprobar que la infraestructura podía destruirse y recrearse a partir del código Terraform, manteniendo separados los entornos de preproducción, QA y producción.
+
+### Problemas encontrados y soluciones
+
+**Configuración de Neon:** Durante los primeros intentos de creación, Neon requirió indicar explícitamente el identificador de la organización. Además, el valor predeterminado de retención del historial superaba el permitido por el plan gratuito. Se solucionó agregando `org_id` y configurando `history_retention_seconds = 21600`, equivalente a seis horas.
+
+**Base de datos sin tablas:** Después de crear el proyecto de Neon, la conexión a PostgreSQL funcionaba, pero la consulta de productos devolvía un error porque todavía no existían las tablas. Se solucionó ejecutando el archivo SQL de inicialización de PetStyle.
+
+**Administración de credenciales:** Para evitar incluir claves de acceso y contraseñas en el repositorio, se utilizaron variables de entorno para las API de Render y Neon. También se configuró `.gitignore` para excluir archivos de estado de Terraform y archivos de variables que pudieran contener información sensible.
+
+### Uso de inteligencia artificial
+
+Se utilizó inteligencia artificial como herramienta de apoyo para comprender el funcionamiento de Terraform, preparar los archivos de infraestructura y revisar los errores que aparecieron durante la configuración de los proveedores.
+
+También se utilizó para organizar las verificaciones del entorno, interpretar los resultados de los comandos `plan`, `apply` y `destroy`, y documentar las decisiones técnicas. El funcionamiento se comprobó mediante ejecuciones reales de Terraform y solicitudes HTTP a la aplicación desplegada.
