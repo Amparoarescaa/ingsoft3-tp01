@@ -768,6 +768,10 @@ También se utilizó para organizar las verificaciones del entorno, interpretar 
 
 Se configuró Dependabot para revisar las dependencias npm del backend y frontend, y las acciones utilizadas por GitHub Actions. Se verificó su funcionamiento mediante la actualización de una dependencia, integrada a main con las pruebas de CI exitosas.
 
+Actualización integrada: Dependabot generó el Pull Request #42 para actualizar la dependencia pg del backend, utilizada para la conexión con PostgreSQL, desde la versión 8.23.0 a 8.23.1.
+
+Se decidió aceptar la actualización porque corresponde a una versión de parche que permite mantener actualizada la dependencia sin introducir cambios mayores de versión. Antes de integrarla se verificó que las seis comprobaciones automáticas finalizaran correctamente. El PR fue fusionado a main mediante el commit c3dbe24.
+
 También se habilitó CodeQL para realizar análisis estático de seguridad y se activó la protección contra la publicación de secretos (Push Protection).
 
 ### Monitoreo de disponibilidad
@@ -777,6 +781,8 @@ Se configuró UptimeRobot para monitorear el endpoint `/health` del backend de p
 Para comprobar las alertas se modificó temporalmente la URL monitoreada, provocando una respuesta HTTP 404 sin detener realmente el backend.
 
 UptimeRobot registró el incidente el 19/10/2026 a las 19:20:14 y su recuperación a las 19:21:18, con una duración total de 1 minuto y 4 segundos. Se recibieron las notificaciones DOWN y UP por correo electrónico.
+
+Tiempo de notificación: Durante la prueba del 19/10/2026, UptimeRobot registró el inicio del incidente a las 19:20:14 y el correo de alerta DOWN se recibió a las 19:20, según Gmail. Esto permite confirmar que la notificación llegó durante el mismo minuto del incidente. Gmail informó un tiempo de entrega del mensaje de 5 segundos, aunque este valor corresponde al transporte del correo y no al tiempo total de detección de la caída. El incidente tuvo una duración de 1 minuto y 4 segundos.
 
 Finalizada la prueba, se restauró la URL correcta y se pausó el monitor para evitar consumir horas del plan gratuito de Render.
 
