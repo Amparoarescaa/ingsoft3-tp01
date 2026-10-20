@@ -32,7 +32,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=backend
 
       - name: Preparar Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -110,7 +110,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=frontend
 
       - name: Preparar Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -305,7 +305,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Preparar Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -343,7 +343,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Preparar Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
