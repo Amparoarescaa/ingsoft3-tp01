@@ -759,3 +759,47 @@ Esta prueba permitió comprobar que la infraestructura podía destruirse y recre
 Se utilizó inteligencia artificial como herramienta de apoyo para comprender el funcionamiento de Terraform, preparar los archivos de infraestructura y revisar los errores que aparecieron durante la configuración de los proveedores.
 
 También se utilizó para organizar las verificaciones del entorno, interpretar los resultados de los comandos `plan`, `apply` y `destroy`, y documentar las decisiones técnicas. El funcionamiento se comprobó mediante ejecuciones reales de Terraform y solicitudes HTTP a la aplicación desplegada.
+
+---
+
+## TP9 — DevSecOps y Observabilidad
+
+### Seguridad y análisis de dependencias
+
+Se configuró Dependabot para revisar las dependencias npm del backend y frontend, y las acciones utilizadas por GitHub Actions. Se verificó su funcionamiento mediante la actualización de una dependencia, integrada a main con las pruebas de CI exitosas.
+
+También se habilitó CodeQL para realizar análisis estático de seguridad y se activó la protección contra la publicación de secretos (Push Protection).
+
+### Monitoreo de disponibilidad
+
+Se configuró UptimeRobot para monitorear el endpoint `/health` del backend de producción.
+
+Para comprobar las alertas se modificó temporalmente la URL monitoreada, provocando una respuesta HTTP 404 sin detener realmente el backend.
+
+UptimeRobot registró el incidente el 19/10/2026 a las 19:20:14 y su recuperación a las 19:21:18, con una duración total de 1 minuto y 4 segundos. Se recibieron las notificaciones DOWN y UP por correo electrónico.
+
+Finalizada la prueba, se restauró la URL correcta y se pausó el monitor para evitar consumir horas del plan gratuito de Render.
+
+### Observabilidad con Sentry
+
+Se integró Sentry en el backend Express y en el frontend React para registrar errores y analizar el rendimiento de la aplicación.
+
+La integración se realizó mediante un pull request, con las pruebas de CI y CodeQL exitosas.
+
+Se comprobó la recepción de errores de prueba en ambos proyectos de Sentry y se analizaron las transacciones registradas en producción.
+
+Entre las transacciones observadas, Navigation presentó una duración p75 de 1,09 segundos, Pageload de 725,25 ms y GET /api/productos de 187,88 ms.
+
+A partir de estos datos se creó una tarjeta en el tablero del TP3 para investigar posibles mejoras en el rendimiento de la navegación del frontend.
+
+### Problemas encontrados y soluciones
+
+**Configuración del frontend:** Como Vite incorpora sus variables de entorno durante la compilación, fue necesario configurar el DSN de Sentry como argumento de construcción de la imagen Docker desde GitHub Actions.
+
+**Verificación de errores:** Se generaron errores controlados para comprobar que Sentry recibiera eventos tanto del frontend como del backend, sin modificar el funcionamiento normal de la aplicación.
+
+### Uso de inteligencia artificial
+
+Se utilizó inteligencia artificial como apoyo para configurar Dependabot, CodeQL, UptimeRobot y Sentry, interpretar los resultados de las pruebas y revisar la integración con Docker y GitHub Actions.
+
+También se utilizó para analizar las métricas de rendimiento y organizar la documentación. Las configuraciones se verificaron mediante las ejecuciones reales del pipeline, las alertas de UptimeRobot y los eventos registrados en Sentry.
