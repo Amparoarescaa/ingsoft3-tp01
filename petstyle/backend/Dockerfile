@@ -18,8 +18,9 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY package*.json ./
 COPY db.js ./
 COPY server.js ./
+COPY instrument.js ./
 COPY src ./src
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "--require", "./instrument.js", "server.js"]

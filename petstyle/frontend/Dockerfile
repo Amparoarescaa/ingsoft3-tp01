@@ -8,6 +8,7 @@ RUN npm ci
 
 COPY . .
 
+ARG VITE_SENTRY_DSN
 RUN npm run build
 
 

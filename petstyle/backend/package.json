@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "test": "vitest run --globals",
-  "test:integration": "vitest run --config vitest.integration.config.js"
-},
+    "test": "vitest run --globals",
+    "test:integration": "vitest run --config vitest.integration.config.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@sentry/node": "^11.8.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
