@@ -63,7 +63,7 @@ jobs:
 
       - name: Publicar coverage
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-backend
           path: petstyle/backend/coverage/
@@ -141,7 +141,7 @@ jobs:
 
       - name: Publicar coverage
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-frontend
           path: petstyle/frontend/coverage/
@@ -323,7 +323,7 @@ jobs:
 
       - name: Publicar reporte de integración
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-integration-report
           path: |
@@ -363,7 +363,7 @@ jobs:
 
       - name: Publicar reporte HTML de Playwright
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-html
           path: petstyle/frontend/playwright-report/
@@ -371,7 +371,7 @@ jobs:
 
       - name: Publicar reporte JUnit de Playwright
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-junit
           path: petstyle/frontend/playwright-results/
