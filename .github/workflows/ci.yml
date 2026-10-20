@@ -162,6 +162,8 @@ jobs:
           context: ./petstyle/frontend
           push: true
           tags: ghcr.io/amparoarescaa/petstyle-frontend:sha-${{ github.sha }}
+          build-args: |
+            VITE_SENTRY_DSN=${{ vars.VITE_SENTRY_DSN }}
 
   deploy-qa:
     name: Deploy QA
